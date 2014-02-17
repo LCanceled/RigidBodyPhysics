@@ -5,7 +5,6 @@
 #include "DxUtMesh.h"
 #include "DxUtRigidBodyWorld.h"
 #include "DxUtShaders.h"
-#include "DxUtRayTracer.h"
 
 #include <fstream>
 
@@ -180,11 +179,8 @@ DxUt::CMeshPNT g_rgLionPart[20];
 DxUt::CArray<DxUt::Vector3F> g_rgGearPos;
 DWORD g_dwBallId = 0;
 
-DxUt::CRayTracer g_RayTracer;
-
 DxUt::CPNTPhongFx g_Effect;
 
-DxUt::CCollisionGraphics g_CGraphics;
 
 const UINT g_uiScreenWidth = 800;
 const UINT g_uiScreenHeight = 600;
@@ -225,8 +221,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 	//CreateGlass();
 	CreateBall();
 	//g_RayTracer.AddAllRigidBodyWorldMeshes();
-	g_CGraphics.CreateGraphics();
-	g_CGraphics.SetCamera(&g_Camera);
+	DxUt::CCollisionGraphics::SetCamera(&g_Camera);
 	g_RBWorld.SetCameraForCollisionGraphics(&g_Camera);
 
 	g_D3DApp->Loop(Render);
@@ -241,51 +236,51 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 void CreateObj()
 { 
 	//Create camera
-	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.075f, .075f, .075f), .01f);
+	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.075f, .075f, .075f), 1.f/150.f);
 	g_Camera.SetFPCamera(DxUt::Vector3F(0, 5.f, -5.5f), .5*D3DX_PI, 0);
 
 	//Create the mesh
-	g_Box.LoadMeshFromFile("/Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_SubdividedBox.LoadMeshFromFile("/subdivided_box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_BigBox.LoadMeshFromFile("/Box.txt", D3DX10_MESH_32_BIT, Vector3F(4.f));
-	g_Waffle.LoadMeshFromFile("/Frame.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Lattice.LoadMeshFromFile("/lattice.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_BoxInflated.LoadMeshFromFile("/Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.1f));
-	g_Platform.LoadMeshFromFile("/Platform.txt", D3DX10_MESH_32_BIT, Vector3F(2.f, 2.f, 4.f));
-	g_Sphere.LoadMeshFromFile("/sphere_lr.txt", D3DX10_MESH_32_BIT, Vector3F(2.4));
-	g_SphereHR.LoadMeshFromFile("/sphere_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_Torus.LoadMeshFromFile("/torus.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
-	g_TorusHR.LoadMeshFromFile("/torus_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
-	g_Bowl.LoadMeshFromFile("/bowl.txt", D3DX10_MESH_32_BIT, Vector3F(2.5));
-	g_Bunny.LoadMeshFromFile("/bunny.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_Bunny_slr.LoadMeshFromFile("/bunny_slr.txt", D3DX10_MESH_32_BIT, Vector3F(.6));
-	g_Glass.LoadMeshFromFile("/glass_lr.txt", D3DX10_MESH_32_BIT, Vector3F(4.f));
-	g_SmoothCube.LoadMeshFromFile("/smooth_cube.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_BunnyHR.LoadMeshFromFile("/bunny_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_Dragon.LoadMeshFromFile("/dragon.txt", D3DX10_MESH_32_BIT, Vector3F(2.));
-	g_Nut.LoadMeshFromFile("/nut.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_Bolt.LoadMeshFromFile("/bolt.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
-	g_Funnel.LoadMeshFromFile("/funnel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_rgPuzzlePieces[0].LoadMeshFromFile("/puzzle_piece1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_rgGear[0].LoadMeshFromFile("/gear1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_rgGear[1].LoadMeshFromFile("/gear2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Tread.LoadMeshFromFile("/tread.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Wheel.LoadMeshFromFile("/Wheel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Rod.LoadMeshFromFile("/Rod.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Plank.LoadMeshFromFile("/Plank.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Connector.LoadMeshFromFile("/Connector.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_SquareFunnel.LoadMeshFromFile("/funnel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Bottle.LoadMeshFromFile("/bottle.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Cap.LoadMeshFromFile("/cap.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Ground.LoadMeshFromFile("/ground.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Ramp.LoadMeshFromFile("/ramp.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_FrictionBlock.LoadMeshFromFile("/friction_block.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_FrictionBox.LoadMeshFromFile("/friction_box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Homer.LoadMeshFromFile("/homer.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Dilo.LoadMeshFromFile("/dilo.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Horse.LoadMeshFromFile("/horse.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Box.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_SubdividedBox.LoadMeshFromFile("subdivided_box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_BigBox.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(4.f));
+	g_Waffle.LoadMeshFromFile("Frame.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Lattice.LoadMeshFromFile("lattice.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_BoxInflated.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.1f));
+	g_Platform.LoadMeshFromFile("Platform.txt", D3DX10_MESH_32_BIT, Vector3F(2.f, 2.f, 4.f));
+	g_Sphere.LoadMeshFromFile("sphere_lr.txt", D3DX10_MESH_32_BIT, Vector3F(2.4));
+	g_SphereHR.LoadMeshFromFile("sphere_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_Torus.LoadMeshFromFile("torus.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
+	g_TorusHR.LoadMeshFromFile("torus_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
+	g_Bowl.LoadMeshFromFile("bowl.txt", D3DX10_MESH_32_BIT, Vector3F(2.5));
+	g_Bunny.LoadMeshFromFile("bunny.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_Bunny_slr.LoadMeshFromFile("bunny_slr.txt", D3DX10_MESH_32_BIT, Vector3F(.6));
+	g_Glass.LoadMeshFromFile("glass_lr.txt", D3DX10_MESH_32_BIT, Vector3F(4.f));
+	g_SmoothCube.LoadMeshFromFile("smooth_cube.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_BunnyHR.LoadMeshFromFile("bunny_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_Dragon.LoadMeshFromFile("dragon.txt", D3DX10_MESH_32_BIT, Vector3F(2.));
+	g_Nut.LoadMeshFromFile("nut.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_Bolt.LoadMeshFromFile("bolt.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
+	g_Funnel.LoadMeshFromFile("funnel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_rgPuzzlePieces[0].LoadMeshFromFile("puzzle_piece1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_rgGear[0].LoadMeshFromFile("gear1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_rgGear[1].LoadMeshFromFile("gear2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Tread.LoadMeshFromFile("tread.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Wheel.LoadMeshFromFile("Wheel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Rod.LoadMeshFromFile("Rod.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Plank.LoadMeshFromFile("Plank.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Connector.LoadMeshFromFile("Connector.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_SquareFunnel.LoadMeshFromFile("funnel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Bottle.LoadMeshFromFile("bottle.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Cap.LoadMeshFromFile("cap.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Ground.LoadMeshFromFile("ground.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Ramp.LoadMeshFromFile("ramp.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_FrictionBlock.LoadMeshFromFile("friction_block.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_FrictionBox.LoadMeshFromFile("friction_box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Homer.LoadMeshFromFile("homer.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Dilo.LoadMeshFromFile("dilo.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Horse.LoadMeshFromFile("horse.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 
-	char file[256] = {"/lion_00.txt"};
+	char file[256] = {"lion_00.txt"};
 	for (DWORD i=0; i<g_nLionParts; i++) {
 		file[strlen(file)-5] = '0' + i;
 		g_rgLionPart[i].LoadMeshFromFile(file, D3DX10_MESH_32_BIT, Vector3F(1.f));
@@ -296,7 +291,7 @@ void CreateObj()
 	//g_Convex[3].LoadMeshFromFile("C:\\Users\\Aric\\Desktop\\Research\\Convex\\convex_4.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 
 
-	/*g_RayTracer.CreateRayTracer("/Ouput.png", 860, 640, 1, DIK_9, 100, &g_RBWorld);
+	/*g_RayTracer.CreateRayTracer("Ouput.png", 860, 640, 1, DIK_9, 100, &g_RBWorld);
 	DxUt::SLightSource light = {
 		DxUt::Vector3F(.4, .4f, .4f),
 		DxUt::Vector3F(.8, .8f, .8f),
@@ -315,9 +310,9 @@ void CreateTestVE()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -371,13 +366,13 @@ void CreateFrictionScene()
 		float offset = 16.f;
 		if (strstr(name, "Cube") != NULL) {
 			g_RBWorld.AddRigidBody(&g_FrictionBox, dwStride, 1.f, mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/friction_box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "friction_box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 		} else if (strstr(name, "Cylinder") != NULL) {
 			DWORD dwRB = g_RBWorld.AddRigidBody(&g_Cylinder, dwStride, 1.f, mass, pos, rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/cylinder.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "cylinder.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 		} else {
 			DWORD dwRB = g_RBWorld.AddRigidBody(&g_FrictionBlock, dwStride, 1.f, -mass, pos, rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/friction_block.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "friction_block.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 		}
 	}
 }
@@ -398,22 +393,22 @@ void CreateDentingScene()
 	mat.dif = D3DXCOLOR(.8f, .1f, .1f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_SubdividedBox, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/subdivided_box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "subdivided_box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	
 	mat.amb = D3DXCOLOR(.1f, .1f, .2f, 1.f);
 	mat.dif = D3DXCOLOR(.2f, .2f, .6f, 1.f);
 	
 	g_RBWorld.AddRigidBody(&g_SphereHR, dwStride, 1.f, 10.f, Vector3F(0, 5.f, 0), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	g_RBWorld.AddRigidBody(&g_SphereHR, dwStride, 1.f, 10.f, Vector3F(.4f, 5.f, .2f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	g_RBWorld.AddRigidBody(&g_SphereHR, dwStride, 1.f, 10.f, Vector3F(0, 5.f, .5f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	g_RBWorld.AddRigidBody(&g_SphereHR, dwStride, 1.f, 10.f, Vector3F(-.4f, 5.f, -.4f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(0, 5, 0);
 }
@@ -426,9 +421,9 @@ void CreateTestFE1()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -446,9 +441,9 @@ void CreateBoxScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_BigBox, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/CubeBig.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "CubeBig.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	/*g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Cube.lvset", .05, 6, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Cube.lvset", .05, 6, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -477,7 +472,7 @@ void CreateModBox()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/modCube.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "modCube.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 }
 
 void CreateEdgeOnBoxScene()
@@ -488,9 +483,9 @@ void CreateEdgeOnBoxScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset",  100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset",  100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -511,9 +506,9 @@ void CreateBoxEdgeScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -534,9 +529,9 @@ void CreateEdgeEdgeScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal;
 	//Face-face
@@ -565,9 +560,9 @@ void CreateWaffle()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Lattice, dwStride, 1.f, -10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/lattice.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "lattice.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Lattice, dwStride, 1.f, 10.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/lattice.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "lattice.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot, rot2;
 	rot.MRotationXLH(D3DX_PI);
@@ -584,12 +579,12 @@ void CreateBowlScene()
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	
 	g_RBWorld.AddRigidBody(&g_Bowl, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Bowlll.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Bowlll.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	//g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/Platform.lvset", .15, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	//	zero, 1.f, 0.f, zero, zero, "Platform.lvset", .15, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	//g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/Platform_Big.lvset", .15, 1, DxUt::CRigidBody::GT_OBBOX);
+	//	zero, 1.f, 0.f, zero, zero, "Platform_Big.lvset", .15, 1, DxUt::CRigidBody::GT_OBBOX);
 
 	DxUt::Matrix4x4F rot1;
 	rot1.MRotationXLH(1.*3.141);
@@ -605,15 +600,15 @@ void CreateBowlScene()
 		DxUt::Vector3F pos(0.f, -0.f+fSphereRadius*(i+1), 0.f);
 		//if ((i)%2) {
 			g_RBWorld.AddRigidBody(&g_BunnyHR, dwStride, 1.f, mass, pos, idenity, zero, 
-				zero, 1.f, 0.f, zero, zero, "/bunnyHR.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+				zero, 1.f, 0.f, zero, zero, "bunnyHR.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			
 			//g_RBWorld.GetRigidBody(i)->GetRot() = rot2*rot1;
 			//g_RBWorld.GetRigidBody(i)->GetRot() = rot2;
 		//} else {
 			//g_RBWorld.AddRigidBody(&g_TorusHR, dwStride, 1.f, mass, pos, idenity, zero, 
-			//	zero, 1.f, 0.f, zero, zero, "/torusHR.lvset", .25, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+			//	zero, 1.f, 0.f, zero, zero, "torusHR.lvset", .25, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			//g_RBWorld.AddRigidBody(&g_Dragon, dwStride, 1.f, mass, pos, idenity, zero, 
-			//	zero, 1.f, 0.f, zero, zero, "/dragon.lvset", .125, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+			//	zero, 1.f, 0.f, zero, zero, "dragon.lvset", .125, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			//g_RBWorld.GetRigidBody(i)->GetRot() = rot1;
 		//}
 		g_RBWorld.GetRigidBody(i)->GetPos() = pos;
@@ -632,9 +627,9 @@ void CreatePlatformScene()
 	rot1.MRotationXLH(-.02*D3DX_PI);
 	rot2.MRotationYLH(.5*D3DX_PI);
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, DxUt::Vector3F(40, 5, 0), rot2*rot1, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, 10.f, DxUt::Vector3F(10, 8.f, 0), rot2*rot1, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	/*DxUt::Matrix4x4F rot1, rot2;
 	//Face-face
@@ -662,7 +657,7 @@ void CreateBoxPyramidScene()
 	mat.dif = D3DXCOLOR(.02f, .0f, .0f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		zero, 1.f, 0.f, zero, zero, "Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 
 	mat.amb = D3DXCOLOR(.1f, .1f, .2f, 1.f);
 	mat.dif = D3DXCOLOR(.2f, .2f, .6f, 1.f);
@@ -693,7 +688,7 @@ void CreateBoxPyramidScene()
 			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth + .1*(i%2), 2 + fBoxWidth*j, .2f*(j%2))); 
 			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth, 2 + fBoxWidth*j, 0)); 
 			g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, mass, boxPos, idenity, zero,
-				zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 
 			//g_RBWorld.GetRigidBody(1+i*(j+1))->GetPos() = DxUt::Vector3F(fBoxLeft + i*fBoxWidth, 2 + fBoxWidth*j, 0);
 			//g_RBWorld.GetRigidBody(1+i*(j+1))->GetLinVel() = DxUt::Vector3F(0, 0, 1.f);
@@ -805,7 +800,7 @@ void CreateBoxStackScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	//g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/Platform_Big.lvset", .25, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	//	zero, 1.f, 0.f, zero, zero, "Platform_Big.lvset", .25, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal, rot2, rot3;
 	//Face-face
@@ -833,13 +828,13 @@ void CreateBoxStackScene()
 		}*/
 		if (j%2) {
 			g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, mass, boxPos, idenity, zero,
-				zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+				zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			//g_RBWorld.GetRigidBody(j+1)->GetAngVel() = DxUt::Vector3F(0, .8f, 0);
 			//g_RBWorld.GetRigidBody(j+1)->GetRot() = rot1*rot3;
 			//g_RBWorld.GetRigidBody(j+1)->GetPos() += DxUt::Vector3F(0, 0, .001);
 		} else {
 			g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, mass, boxPos, idenity, zero,
-				zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+				zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 		}
 		//g_RBWorld.GetRigidBody(j+1)->GetLinVel() = DxUt::Vector3F(-.4, 0, 0);
 		//g_RBWorld.GetRigidBody(j+1)->GetAngVel() = DxUt::Vector3F(0, .5f, 0);
@@ -856,7 +851,7 @@ void CreateBoxOnCornerScene()
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 	DxUt::Matrix4x4F rot1, rotHorizontal, rot2;
 	//Face-face
@@ -872,7 +867,7 @@ void CreateBoxOnCornerScene()
 	//DxUt::Vector3F boxPos(DxUt::Vector3F((rand() % 256)*.001, 2 + fBoxWidth*j, (rand() % 256)*.001)); 
 	DxUt::Vector3F boxPos(DxUt::Vector3F(-9.12, 1.3, 2.5)); 
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, mass, boxPos, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	//g_RBWorld.GetRigidBody(j+1)->GetLinVel() = DxUt::Vector3F(-.6f, 0, .6f);
 	//g_RBWorld.GetRigidBody(j+1)->GetAngVel() = DxUt::Vector3F(0, .5f, 0);
 	//g_RBWorld.GetRigidBody(j+1)->GetPos() = DxUt::Vector3F(-10.f, 1.45f, 3.f);
@@ -885,9 +880,9 @@ void CreateGlass()
 	DxUt::Vector3F pos(-20, 10, 0), zero(0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	//g_dwBallId = g_RBWorld.AddRigidBody(&g_Sphere, dwStride, 1.f, 100.f, pos, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/sphere_lr.lvset", .05, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	//	zero, 1.f, 0.f, zero, zero, "sphere_lr.lvset", .05, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	//g_dwBallId = g_RBWorld.AddRigidBody(&g_Glass, dwStride, 1.f, 100.f, pos, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/glass.lvset", .05, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	//	zero, 1.f, 0.f, zero, zero, "glass.lvset", .05, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 }
 
 void CreateBall()
@@ -896,14 +891,14 @@ void CreateBall()
 	DxUt::Vector3F pos(0, 0, -1000), zero(0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
 	g_dwBallId = g_RBWorld.AddRigidBody(&g_SphereHR, dwStride, 1.f, 1.f, pos, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+		zero, 1.f, 0.f, zero, zero, "sphere_hr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 	//g_dwBallId = g_RBWorld.AddRigidBody(&g_Bunny, dwStride, 1.f, 100.f, pos, idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/bunny.lvset", .15, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	//	zero, 1.f, 0.f, zero, zero, "bunny.lvset", .15, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 }
 
 void CreateBunnyScene()
 {
-	g_RBWorld.CreateRigidBodyWorld(2, 32);
+	/*g_RBWorld.CreateRigidBodyWorld(2, 32);
 	DxUt::Matrix4x4F idenity; idenity.MIdenity();
 	DxUt::Vector3F zero(0, 0, 0);
 	DWORD dwStride = sizeof(DxUt::SVertexPNT);
@@ -917,7 +912,7 @@ void CreateBunnyScene()
 		for (DWORD j=0; j<3; j++) {
 			float elevation = sqrtf((i+1)*(i+1) + (2+2*j)*(2+2*j));
 			g_RBWorld.AddRigidBody(&g_Glass, dwStride, 1.f, -200.f, DxUt::Vector3F((float)i*fScaling + fOffsetX, -1.5*10.5 + fVerticalAscension*elevation, 24*j), glassRot, zero,
-				zero, 1.f, 0.f, zero, zero, "/glass.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+				zero, 1.f, 0.f, zero, zero, "glass.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			DxUt::SSurfaceFresnel * desc =  new DxUt::SSurfaceFresnel;
 			desc->amb = DxUt::Vector3F(0);
 			if (j==0)
@@ -927,7 +922,7 @@ void CreateBunnyScene()
 			else if (j == 2)
 				desc->n = DxUt::Vector4F(1.f, .4f, .4f, 1.3);
 			desc->bInterpolateNormal = 1;
-			g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
+			//g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
 		}
 	}
 
@@ -941,13 +936,13 @@ void CreateBunnyScene()
 	int nCubes = 11;
 	float fCubeSize = 8.f;
 	float fCubeOffset = - (6/2) * fCubeSize;
-	g_PlatformLong.LoadMeshFromFile("/Box.txt", D3DX10_MESH_32_BIT, Vector3F(fCubeSize-2, fCubeSize, fCubeSize-2));
+	g_PlatformLong.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(fCubeSize-2, fCubeSize, fCubeSize-2));
 	fCubeSize *= 2;
 	for (int i=0; i<nCubes*nCubes; i++) {
 		float elevation = sqrtf((i%nCubes)*(i%nCubes) + (i/nCubes)*(i/nCubes));
 		g_RBWorld.AddRigidBody(&g_PlatformLong, dwStride, 1.f, -200.f, 
 			DxUt::Vector3F(-fCubeOffset - (i/nCubes)*(fCubeSize-4), -1.5f*fCubeSize + fVerticalAscension*elevation, fCubeOffset + (i%nCubes)*(fCubeSize-4)),
-			idenity, zero, zero, 1.f, 0.f, zero, zero, "/Cube_big.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+			idenity, zero, zero, 1.f, 0.f, zero, zero, "Cube_big.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 		DxUt::SSurfaceLambert * desc =  new DxUt::SSurfaceLambert;
 		desc->amb = DxUt::Vector3F(0, 0, 0);
@@ -959,7 +954,7 @@ void CreateBunnyScene()
 		}
 		desc->sPow = 60.f;
 		desc->bInterpolateNormal = 1;
-		g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
+		//g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
 	}
 	
 	float fBunnyOffset = 10.f;
@@ -969,7 +964,7 @@ void CreateBunnyScene()
 			for (DWORD k=0; k<6; k++) {
 				float elevation = sqrtf((i+1)*(i+1) + (2+2*j)*(2+2*j));
 				g_RBWorld.AddRigidBody(&g_Bunny, dwStride, 1.f, 1.f, DxUt::Vector3F((float)i*fScaling + fOffsetX, -1.5*10.5 + 6*elevation + fBunnyOffset + k*fBunnySpacing, j*24),
-					idenity, zero, zero, 1.f, 0.f, zero, zero, "/bunny.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+					idenity, zero, zero, 1.f, 0.f, zero, zero, "bunny.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 
 				DxUt::SSurfaceFresnel * desc =  new DxUt::SSurfaceFresnel;
 				desc->amb = DxUt::Vector3F(0);
@@ -981,12 +976,12 @@ void CreateBunnyScene()
 					desc->n = DxUt::Vector4F(1.f, .5f, .5f, 1.3); break;
 				case 2:
 					desc->n = DxUt::Vector4F(.5f, 1.f, .5f, 1.3);
-				}*/
+				}
 				desc->bInterpolateNormal = 1;
-				g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
+				//g_RayTracer.AddMesh(g_RBWorld.GetNumBodies()-1, desc);
 			}
 		}
-	}
+	}*/
 }
 
 void CreateNutBoltScene()
@@ -1007,13 +1002,13 @@ void CreateNutBoltScene()
 	mat.dif = D3DXCOLOR(1.f, .6f, .6f, 1.f);
 	
 	g_RBWorld.AddRigidBody(&g_Nut, dwStride, 1.f, 1.f, Vector3F(0, 0.f, 0), rot, zero,
-		Vector3F(0, 1.1f, 0), 1.f, 0.f, zero, zero, "/nut.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		Vector3F(0, 1.1f, 0), 1.f, 0.f, zero, zero, "nut.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	mat.amb = D3DXCOLOR(.3f, .3f, .6f, 1.f);
 	mat.dif = D3DXCOLOR(.6f, .6f, 1.f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_Bolt, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/bolt.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "bolt.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 }
 
 void CreateFunnelScene()
@@ -1048,19 +1043,19 @@ void CreateFunnelScene()
 	file.close();
 	
 	g_RBWorld.AddRigidBody(&g_Funnel, dwStride, 1.f, -1.f, zero, rot, zero,
-		zero, 1.f, 0.f, zero, zero, "/funnel.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "funnel.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	nPoly += g_Funnel->GetFaceCount();
 
 	g_RBWorld.AddRigidBody(&g_Sphere, dwStride, 1.f, -1.f, Vector3F(0, -14.f, 0), rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/sphere_lr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "sphere_lr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	nPoly += g_Sphere->GetFaceCount();
 
 	//g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(0, -10, 0), idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/Box.lvset", .05, 1, DxUt::CRigidBody::GT_OBBOX, &mat);
+	//	zero, 1.f, 0.f, zero, zero, "Box.lvset", .05, 1, DxUt::CRigidBody::GT_OBBOX, &mat);
 
 	/*mat.amb = D3DXCOLOR((rand() % 255)/255.f, (rand() % 255)/255.f, (rand() % 255)/255.f, 1.f);//D3DXCOLOR(.6f, .3f, .3f, 1.f);
 	g_RBWorld.AddRigidBody(&g_Bolt, dwStride, 1.f, 1.f, DxUt::Vector3F(-6,6, -.5), rot2, zero,
-				zero, 1.f, 0.f, zero, zero, "/bolt.lvset", .08, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);*/
+				zero, 1.f, 0.f, zero, zero, "bolt.lvset", .08, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);*/
 	float objRadius = 12.5f;
 	Vector3F objPos(8.f, -2.5f, 0.f);
 	srand(90);
@@ -1073,32 +1068,32 @@ void CreateFunnelScene()
 		switch (choice) {
 		case 0:
 			g_RBWorld.AddRigidBody(&g_Homer, dwStride, 1.f, 1.f, objPos+offset, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/homer.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "homer.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 			nPoly += g_Homer->GetFaceCount();
 			break;
 		case 1:
 			g_RBWorld.AddRigidBody(&g_Dilo, dwStride, 1.f, 1.f, objPos+offset, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/dilo.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "dilo.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 			nPoly += g_Dilo->GetFaceCount();
 			break;
 		case 2:
 			g_RBWorld.AddRigidBody(&g_Horse, dwStride, 1.f, 1.f, objPos+offset, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/horse.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "horse.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 			nPoly += g_Horse->GetFaceCount();
 			break;
 		case 3:
 			g_RBWorld.AddRigidBody(&g_Sphere, dwStride, 1.f, 1.f, objPos+offset, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/sphere_lr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "sphere_lr.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 			nPoly += g_Sphere->GetFaceCount();
 			break; 
 		case 4:
 			g_RBWorld.AddRigidBody(&g_Bunny, dwStride, 1.f, 1.f, -objPos+offset, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/bunny.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "bunny.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 			nPoly += g_Bunny->GetFaceCount();
 			break;
 		case 5:
 			g_RBWorld.AddRigidBody(&g_BunnyHR, dwStride, 1.f, 1.,  -objPos+offset, idenity, zero, 
-				zero, 1.f, 0.f, zero, zero, "/bunny_hr.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+				zero, 1.f, 0.f, zero, zero, "bunny_hr.lvset", dwTriPerVolume, DxUt::CRigidBody::GT_TRIANGLE_MESH);
 			nPoly += g_BunnyHR->GetFaceCount();
 			break;
 		}
@@ -1123,7 +1118,7 @@ void CreatePuzzleScene()
 	mat.dif = D3DXCOLOR(.02f, .0f, .0f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		zero, 1.f, 0.f, zero, zero, "Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 
 	mat.amb = D3DXCOLOR(.1f, .1f, .2f, 1.f);
 	mat.dif = D3DXCOLOR(.2f, .2f, .6f, 1.f);
@@ -1153,7 +1148,7 @@ void CreatePuzzleScene()
 			DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*(fBoxWidth) + (rand() % 256)*.000, 6 + fBoxHeight*j, (rand() % 256)*.000 )); 
 
 			g_RBWorld.AddRigidBody(&g_rgPuzzlePieces[0], dwStride, 1.f, mass, boxPos, idenity, zero,
-				zero, 1.f, 0.f, zero, zero, "/puzzle_piece1.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "puzzle_piece1.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 		}
 	}
 }
@@ -1185,7 +1180,7 @@ void CreateGearsScene()
 	
 	float mass = 1.f;
 	g_RBWorld.AddRigidBody(&g_rgGear[0], dwStride, 1.f, -mass, Vector3F(0), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/gear1.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		zero, 1.f, 0.f, zero, zero, "gear1.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 	DxUt::Matrix4x4F iBody(g_RBWorld.GetRigidBody(0)->GetIBody());
 	iBody.m[0][0] = iBody.m[1][0] = iBody.m[2][0] = iBody.m[3][0] = 0;
 	iBody.m[0][2] = iBody.m[1][1] = iBody.m[2][1] = iBody.m[3][1] = 0;
@@ -1195,7 +1190,7 @@ void CreateGearsScene()
 	g_RBWorld.AddCenterOfMassPositionConstraint(0, Vector3F(0));
 
 	g_RBWorld.AddRigidBody(&g_rgGear[1], dwStride, 1.f, mass, Vector3F(-8.8, 0, 0), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/gear2.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		zero, 1.f, 0.f, zero, zero, "gear2.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 	DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(1)->GetIBody());
 	iBody2.m[0][1] = 0;
 	iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
@@ -1251,15 +1246,15 @@ void CreateTankScene()
 		float offset = 16.f;
 		if (strstr(name, "Cube") != NULL) {
 			/*g_RBWorld.AddRigidBody(&g_Tread, dwStride, 1.f, .1f*mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 
 			g_RBWorld.AddRigidBody(&g_Tread, dwStride, 1.f, .1f*mass, pos+Vector3F(0, 0, offset), rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);*/
+				zero, 1.f, 0.f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);*/
 		} else if (strstr(name, "Wheel") != NULL) {
 			DWORD dwRB = g_RBWorld.AddRigidBody(&g_Wheel, dwStride, 1.f, mass, pos, rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			dwRB = g_RBWorld.AddRigidBody(&g_Wheel, dwStride, 1.f, mass, pos+Vector3F(0, 0, offset), rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			/*DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(dwRB)->GetIBody());
 			iBody2.m[0][1] = 0;
 			iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
@@ -1269,7 +1264,7 @@ void CreateTankScene()
 			g_RBWorld.AddCenterOfMassPositionConstraint(dwRB, pos);*/
 
 			/*DWORD dwRB = g_RBWorld.AddRigidBody(&g_Wheel, dwStride, 1.f, -mass, pos, rot, zero,
-				Vector3F(0, 0, 1.f), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				Vector3F(0, 0, 1.f), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(dwRB)->GetIBody());
 			iBody2.m[0][1] = 0;
 			iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
@@ -1279,7 +1274,7 @@ void CreateTankScene()
 			g_RBWorld.AddCenterOfMassPositionConstraint(dwRB, pos);*/
 		} else if (strstr(name, "Rod") != NULL) {
 			DWORD dwRB = g_RBWorld.AddRigidBody(&g_Rod, dwStride, 1.f, mass, pos, rot, zero,
-			Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "/rod.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+			Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "rod.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			g_dwRod[dwRod++] = dwRB;
 			//DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(dwRB)->GetIBody());
 			/*iBody2.m[0][1] = 0;
@@ -1293,39 +1288,39 @@ void CreateTankScene()
 			matCopy.amb = D3DXCOLOR(.7f, .0f, .0f, 1.f);
 			matCopy.dif = D3DXCOLOR(.7f, .0f, .0f, 1.f);
 			g_RBWorld.AddRigidBody(&g_Plank, dwStride, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/plank.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
+				zero, 1.f, 0.f, zero, zero, "plank.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
 		} else if(strstr(name, "Ground") != NULL) {
 			DxUt::SMaterial matCopy = mat;
 			matCopy.amb = D3DXCOLOR(.7f, .0f, .0f, 1.f);
 			matCopy.dif = D3DXCOLOR(.7f, .0f, .0f, 1.f);
 			g_RBWorld.AddRigidBody(&g_Ground, dwStride, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/ground.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
+				zero, 1.f, 0.f, zero, zero, "ground.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
 		} else if (strstr(name, "Connector") != NULL) {
 			g_RBWorld.AddRigidBody(&g_Connector, dwStride, 1.f, mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+				zero, 1.f, 0.f, zero, zero, "connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 			g_RBWorld.AddRigidBody(&g_Connector, dwStride, 1.f, mass, pos+Vector3F(0, 0, 4.f), rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+				zero, 1.f, 0.f, zero, zero, "connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 		} else if  (strstr(name, "Ramp") != NULL) {
 			g_RBWorld.AddRigidBody(&g_Ramp, dwStride, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "/ramp.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+				zero, 1.f, 0.f, zero, zero, "ramp.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 		}
 	}
 
 	float height  = 14.f;
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(90.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(90.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(105.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(105.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(115.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
 	g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(115.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 }
 
 void CreateBottleScene()
@@ -1354,7 +1349,7 @@ void CreateBottleScene()
 
 	float mass  = 1.f;
 	g_RBWorld.AddRigidBody(&g_SquareFunnel, dwStride, 1.f, -mass, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/funnel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		zero, 1.f, 0.f, zero, zero, "funnel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 
 	DWORD sizeX = 1;
 	DWORD sizeZ = 1;
@@ -1369,10 +1364,10 @@ void CreateBottleScene()
 			Vector3F pos(i*width + startX, 30.f, j*width + startZ);
 
 			g_RBWorld.AddRigidBody(&g_Bottle, dwStride, 1.f, mass, pos, rot2, zero,
-				zero, 1.f, 0.f, zero, zero, "/bottle.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "bottle.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			
 			g_RBWorld.AddRigidBody(&g_Cap, dwStride, 1.f, mass, pos+capOffset, rot2, zero,
-				zero, 1.f, 0.f, zero, zero, "/cap.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, 0.f, zero, zero, "cap.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 		}
 	}
 }
@@ -1393,7 +1388,7 @@ void CreateLionScene()
 	mat.dif = D3DXCOLOR(.8f, .0f, .0f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_Platform, dwStride, 1.f, -200.f, zero, idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "/Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		zero, 1.f, 0.f, zero, zero, "Platform_Big.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 
 	mat.amb = D3DXCOLOR(.0f, .0f, .8f, 1.f);
 	mat.dif = D3DXCOLOR(.0f, .0f, .8f, 1.f);
@@ -1402,7 +1397,7 @@ void CreateLionScene()
 	char name[256];
 	DWORD dwRod = 0;
 	DWORD i=0;
-	char file[256] = {"/lion_00.lvset"};
+	char file[256] = {"lion_00.lvset"};
 	while ((stream >> name)) {
 		float mass = 1.f;
 		Vector3F pos;
@@ -1458,22 +1453,22 @@ void CreateChainScene()
 			//mat.dif = 2.f*mat.amb;
 
 			g_RBWorld.AddRigidBody(&g_Torus, dwStride, 1.f, 1.f, angleRot*(center + j*offset), angleRot*rot[(j+1)%2], zero,
-				zero, 1.f, 0.f, zero, zero, "/torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+				zero, 1.f, 0.f, zero, zero, "torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 		}
 		g_RBWorld.AddRigidBody(&g_Torus, dwStride, 1.f, -1.f, angleRot*(center + (nTorusChain-1)*offset), angleRot*rot[(nTorusChain)%2], zero,
-			zero, 1.f, 0.f, zero, zero, "/torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+			zero, 1.f, 0.f, zero, zero, "torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	}
 	g_RBWorld.AddRigidBody(&g_Torus, dwStride, 1.f, 1.f, center, rot[1], zero,
-		zero, 1.f, 0.f, zero, zero, "/torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "torus.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	mat.amb = D3DXCOLOR(.1f, .1f, .6f, 1.f);
 	mat.dif = D3DXCOLOR(.1f, .1f, .6f, 1.f);
 
 	g_RBWorld.AddRigidBody(&g_Sphere, dwStride, 1.f, 1.f, center+ Vector3F(5, 5.f, 0), rot[1], zero,
-		zero, 1.f, 0.f, zero, zero, "/sphere.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
+		zero, 1.f, 0.f, zero, zero, "sphere.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 
 	//g_RBWorld.AddRigidBody(&g_Box, dwStride, 1.f, -1.f, Vector3F(0, -10, 0), idenity, zero,
-	//	zero, 1.f, 0.f, zero, zero, "/Box.lvset", .05, 1, DxUt::CRigidBody::GT_OBBOX, &mat);
+	//	zero, 1.f, 0.f, zero, zero, "Box.lvset", .05, 1, DxUt::CRigidBody::GT_OBBOX, &mat);
 }
 
 void Render()
@@ -1598,8 +1593,6 @@ void ShutDown()
 {
 	g_RBWorld.DestroyRigidBodyWorld();
 
-	g_CGraphics.DestroyGraphics();
-
 	g_Box.DestroyMesh();
 	g_BigBox.DestroyMesh();
 	g_BoxInflated.DestroyMesh();
@@ -1618,7 +1611,7 @@ void ShutDown()
 	g_Bolt.DestroyMesh();
 	g_Funnel.DestroyMesh();
 
-	g_Effect.DestroyEffect();
+	g_Effect.Destroy();
 
 	//g_RayTracer.DestroyRayTracer();
 }
