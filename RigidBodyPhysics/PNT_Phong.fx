@@ -132,20 +132,4 @@ technique10 Render
 	SetRasterizerState(NoCull);
 	//SetRasterizerState(NoCullWire);
      }
-     pass P1
-     {
-        SetVertexShader(CompileShader(vs_4_0, VS_Simple()));
-        SetGeometryShader(NULL);
-        SetPixelShader(CompileShader(ps_4_0, PS_Simple()));
-	SetDepthStencilState(DepthWrite, 0);
-	SetRasterizerState(NoCull);
-     }
-     pass P2
-     {
-        SetVertexShader(CompileShader(vs_4_0, VS_Simple()));
-        SetGeometryShader(NULL);
-        SetPixelShader(CompileShader(ps_4_0, PS_Simple2()));
-	SetDepthStencilState(DepthWrite, 0);
-	SetRasterizerState(NoCull);
-     }
 }
