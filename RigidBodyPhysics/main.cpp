@@ -301,7 +301,7 @@ void CreateWaffleScene()
 void CreateBoxPyramidScene()
 {
 	//Create the RBWorld
-	g_RBWorld.CreateRigidBodyWorld(2, 10000, g_bUseHierarchicalLevelSet, &DxUt::Vector3F(0, -3.8f, 0), .03f, 20.f);
+	g_RBWorld.CreateRigidBodyWorld(2, 10000, g_bUseHierarchicalLevelSet, DxUt::Vector3F(0, -3.8f, 0), .03f, 20.f);
 	DxUt::Matrix4x4F idenity; idenity.MIdenity();
 	DxUt::Vector3F zero(0, 0, 0);
 	UINT uiStride = sizeof(DxUt::SVertexPNT);
