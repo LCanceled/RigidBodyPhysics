@@ -15,13 +15,14 @@ enum Scenes {
 	TestEE,
 	Waffle,
 	BoxPyramid,
+	BoxStack,
 	NutBolt,
 	Funnel,
-	Tank,
+	TankScene,
 };
 //https://gist.github.com/badboy/6267743	
 
-Scenes g_Scene = Scenes::BoxPyramid;
+Scenes g_Scene = Scenes::TankScene;
 
 bool g_bUseHierarchicalLevelSet=0;
 
@@ -34,6 +35,7 @@ void CreateTestFE2();
 void CreateTestEE();
 void CreateWaffleScene();
 void CreateBoxPyramidScene();
+void CreateBoxStackScene();
 void CreateNutBoltScene();
 void CreateFunnelScene();
 void CreateTankScene();
@@ -98,9 +100,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 		case Scenes::TestEE:		CreateTestEE(); break;
 		case Scenes::Waffle:		CreateWaffleScene(); break;
 		case Scenes::BoxPyramid:	CreateBoxPyramidScene(); break;
+		case Scenes::BoxStack:		CreateBoxStackScene(); break;
 		case Scenes::NutBolt:		CreateNutBoltScene(); break;
 		case Scenes::Funnel:		CreateFunnelScene(); break;
-		case Scenes::Tank:			CreateTankScene(); break;
+		case Scenes::TankScene:		CreateTankScene(); break;
 	}
 	//CreateGlass();
  	CreateBall();
@@ -119,7 +122,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 void CreateObj()
 { 
 	//Create camera
-	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.075f, .075f, .075f), .01f);
+	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.475f, .475f, .475f), .01f);
 	g_Camera.SetFPCamera(DxUt::Vector3F(0, 5.f, -5.5f), .5*D3DX_PI, 0);
 
 	//Create the mesh
@@ -146,9 +149,10 @@ void CreateObj()
 	g_Funnel.LoadMeshFromFile("funnel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_rgPuzzlePieces[0].LoadMeshFromFile("puzzle_piece1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_rgGear[0].LoadMeshFromFile("gear1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_rgGear[1].LoadMeshFromFile("gear2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_rgGear[1].LoadMeshFromFile("gear2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));*/
 	g_Tread.LoadMeshFromFile("tread.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Wheel.LoadMeshFromFile("Wheel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Wheel.LoadMeshFromFile("wheel2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	/*
 	g_Rod.LoadMeshFromFile("Rod.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Plank.LoadMeshFromFile("Plank.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Connector.LoadMeshFromFile("Connector.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
@@ -344,6 +348,7 @@ void CreateBoxPyramidScene()
 			//boxPos = Vector3F(0, 4.f, -4.7f);
 			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth + .1*(i%2), 2 + fBoxWidth*j, .2f*(j%2))); 
 			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth, 2 + fBoxWidth*j, 0)); 
+			mat.dif = D3DXCOLOR((rand()%256)/256.f, (rand()%256)/256.f, (rand()%256)/256.f, 1.f);
 			g_RBWorld.AddRigidBody(&g_Box, 1.f, mass, boxPos, idenity, zero,
 				zero, 1.f, 0.0f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 
@@ -351,6 +356,37 @@ void CreateBoxPyramidScene()
 			//g_RBWorld.GetRigidBody(1+i*(j+1))->GetLinVel() = DxUt::Vector3F(0, 0, 1.f);
 			//g_RBWorld.GetRigidBody(idx++)->GetAngVel() = DxUt::Vector3F(0, 1.f, 0);
 		}
+	}
+}
+
+
+void CreateBoxStackScene()
+{
+	//Create the RBWorld
+	g_RBWorld.CreateRigidBodyWorld(2, 10000, g_bUseHierarchicalLevelSet, DxUt::Vector3F(0, -3.8f, 0), .03f, 20.f);
+	DxUt::Matrix4x4F idenity; idenity.MIdenity();
+	DxUt::Vector3F zero(0, 0, 0);
+	UINT uiStride = sizeof(DxUt::SVertexPNT);
+
+	DxUt::SMaterial mat;
+	mat.spe = D3DXCOLOR(.5f, .5f, .5f, 1.f);
+	mat.amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
+	mat.dif = D3DXCOLOR(.8f, .0f, .8f, 1.f);
+	mat.pow = 16.f;
+
+	float mass = 1;
+	int nBoxesHigh = 20;
+	float fBoxCenter = 0.f;
+	float fBoxHeight = 2.01f;
+	for (int j=0; j<=nBoxesHigh; j++) {
+		if (j==0) mass = -1;
+		else mass = 1;
+		mat.dif = D3DXCOLOR((rand()%256)/256.f, (rand()%256)/256.f, (rand()%256)/256.f, 1.f);
+		DxUt::Vector3F boxPos(DxUt::Vector3F(0, 2 + fBoxHeight*j+.0001, 0)); 
+		//if (j==1)
+		//	boxPos = (DxUt::Vector3F(-.22, 2 + fBoxHeight*j+.0001, -.2)); 
+		g_RBWorld.AddRigidBody(&g_Box, 1.f, mass, boxPos, idenity, zero,
+			zero, 1.f, 0.0f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 	}
 }
 
@@ -481,10 +517,12 @@ void CreateFunnelScene()
 	g_App->Print((int)nPoly);*/
 }
 
+UINT g_uiWheelPos[2];
+
 void CreateTankScene()
 {
-	/*//Create the RBWorld
-	g_RBWorld.CreateRigidBodyWorld(2, 10000, g_bUseHierarchicalLevelSet, &DxUt::Vector3F(0, -3.8, 0), .03f, 20.f);
+	//Create the RBWorld
+	g_RBWorld.CreateRigidBodyWorld(20, 1000, g_bUseHierarchicalLevelSet, DxUt::Vector3F(0, -3.8, 0));
 	DxUt::Matrix4x4F idenity; idenity.MIdenity();
 	DxUt::Vector3F zero(0, 0, 0);
 	UINT uiStride = sizeof(DxUt::SVertexPNT);
@@ -506,9 +544,13 @@ void CreateTankScene()
 	rot1.MRotationYLH(.25*3.141);
 	rot2.MRotationZLH(.12*D3DX_PI);
 
-	std::fstream stream("tank_scene_info.txt");
+	g_RBWorld.AddRigidBody(&g_Platform, 1.f, -200.f, Vector3F(0, -17.f, 0), idenity, zero,
+		zero, 1.f, .5f, zero, zero, "platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	std::fstream stream("tank_info.txt");
 	char name[256];
 	UINT uiRod = 0;
+	int count=0;
 	while ((stream >> name)) {
 		float mass = 1.f;
 		Vector3F pos;
@@ -523,83 +565,16 @@ void CreateTankScene()
 		DxUt::Matrix4x4F rot;
 		D3DXMatrixRotationQuaternion((D3DXMATRIX*)&rot, &quat);
 		float offset = 16.f;
-		if (strstr(name, "Cube") != NULL) {
-			/*g_RBWorld.AddRigidBody(&g_Tread, 1.f, .1f*mass, pos, rot, zero,
+		if (strstr(name, "poly") != NULL) {
+			g_RBWorld.AddRigidBody(&g_Tread, 1.f, .1f*mass, pos, rot, zero,
 				zero, 1.f, 0.f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-
-			g_RBWorld.AddRigidBody(&g_Tread, 1.f, .1f*mass, pos+Vector3F(0, 0, offset), rot, zero,
-				zero, 1.f, 0.f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-		} else if (strstr(name, "Wheel") != NULL) {
+		} else if (strstr(name, "wheel") != NULL) {
 			UINT uiRBIndex = g_RBWorld.AddRigidBody(&g_Wheel, 1.f, mass, pos, rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-			uiRBIndex = g_RBWorld.AddRigidBody(&g_Wheel, 1.f, mass, pos+Vector3F(0, 0, offset), rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-			/*DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(uiRBIndex)->GetIBody());
-			iBody2.m[0][1] = 0;
-			iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
-			iBody2.m[0][2] = iBody2.m[1][1] = iBody2.m[2][1] = iBody2.m[3][1] = 0;
-			iBody2.m[0][0] = 100000; iBody2.m[1][1] = 100000; iBody2.m[2][2] = 10.f;
-			g_RBWorld.GetRigidBody(uiRBIndex)->SetIBody(iBody2);
-			g_RBWorld.AddCenterOfMassPositionConstraint(uiRBIndex, pos);
-
-			/*UINT uiRBIndex = g_RBWorld.AddRigidBody(&g_Wheel, 1.f, -mass, pos, rot, zero,
-				Vector3F(0, 0, 1.f), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-			DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(uiRBIndex)->GetIBody());
-			iBody2.m[0][1] = 0;
-			iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
-			iBody2.m[0][2] = iBody2.m[1][1] = iBody2.m[2][1] = iBody2.m[3][1] = 0;
-			iBody2.m[0][0] = 100000; iBody2.m[1][1] = 100000; iBody2.m[2][2] = 10.f;
-			g_RBWorld.GetRigidBody(uiRBIndex)->SetIBody(iBody2);
-			g_RBWorld.AddCenterOfMassPositionConstraint(uiRBIndex, pos);
-		} else if (strstr(name, "Rod") != NULL) {
-			UINT uiRBIndex = g_RBWorld.AddRigidBody(&g_Rod, 1.f, mass, pos, rot, zero,
-			Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "rod.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-			g_uiRod[uiRod++] = uiRBIndex;
-			//DxUt::Matrix4x4F iBody2(g_RBWorld.GetRigidBody(uiRBIndex)->GetIBody());
-			/*iBody2.m[0][1] = 0;
-			iBody2.m[0][0] = iBody2.m[1][0] = iBody2.m[2][0] = iBody2.m[3][0] = 0;
-			iBody2.m[0][2] = iBody2.m[1][1] = iBody2.m[2][1] = iBody2.m[3][1] = 0;
-			iBody2.m[0][0] = 100000; iBody2.m[1][1] = 100000; iBody2.m[2][2] = 10.f;
-			//g_RBWorld.GetRigidBody(uiRBIndex)->SetIBody(iBody2);
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel2.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			//g_RBWorld.AddCenterOfMassPositionConstraint(uiRBIndex, pos);
-		} else if(strstr(name, "Plank") != NULL) {
-			DxUt::SMaterial matCopy = mat;
-			matCopy.amb = D3DXCOLOR(.7f, .0f, .0f, 1.f);
-			matCopy.dif = D3DXCOLOR(.7f, .0f, .0f, 1.f);
-			g_RBWorld.AddRigidBody(&g_Plank, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "plank.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
-		} else if(strstr(name, "Ground") != NULL) {
-			DxUt::SMaterial matCopy = mat;
-			matCopy.amb = D3DXCOLOR(.7f, .0f, .0f, 1.f);
-			matCopy.dif = D3DXCOLOR(.7f, .0f, .0f, 1.f);
-			g_RBWorld.AddRigidBody(&g_Ground, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "ground.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &matCopy);
-		} else if (strstr(name, "Connector") != NULL) {
-			g_RBWorld.AddRigidBody(&g_Connector, 1.f, mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
-			g_RBWorld.AddRigidBody(&g_Connector, 1.f, mass, pos+Vector3F(0, 0, 4.f), rot, zero,
-				zero, 1.f, 0.f, zero, zero, "connector.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
-		} else if  (strstr(name, "Ramp") != NULL) {
-			g_RBWorld.AddRigidBody(&g_Ramp, 1.f, -mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "ramp.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+			g_uiWheelPos[count++] = uiRBIndex;
 		}
 	}
-	/*
-	float height  = 14.f;
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(90.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(90.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
-
-	
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(105.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(105.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(115.f, -height, 0.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);	
-	g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(115.f, -height, 16.f), idenity, zero,
-		zero, 1.f, 0.f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);*/
 }
 
 void Render()
@@ -617,10 +592,12 @@ void Render()
 	//} counter++;
 	static int count = 0;
 	float timeStep = .015f;
-	static bool bInitialGo = 1;
+	static bool bInitialGo = 0;
 	static float totalTime = 0;
 	//if (count++ > 100) timeStep = .01f;
+	static int counter = 0;
 	if (DxUt::g_MouseState.rgbButtons[1] || bInitialGo) {
+		counter++;
 		g_RBWorld.UpdateRigidBodies(timeStep, DxUt::Vector3F(0, -4.8, 0));
 		//Sleep(100);
 	}
@@ -636,12 +613,24 @@ void Render()
 	if (g_bDrawCollisionGraphics)
 		g_RBWorld.DrawCollisionGraphics(&g_Camera);
 
+	if (DxUt::g_KeysState[DIK_D]) {
+		g_RBWorld.SetCenterOfMassPositionConstraint(g_uiWheelPos[0], Vector3F(-.001f, 0, 0));
+		g_RBWorld.SetCenterOfMassPositionConstraint(g_uiWheelPos[1], Vector3F(.001f, 0, 0));
+		//g_RBWorld.GetRigidBody(g_uiWheelPos[0])->GetAngVel() += DxUt::Vector3F(0, 0, .05f);
+		//g_RBWorld.GetRigidBody(g_uiWheelPos[1])->GetAngVel() += DxUt::Vector3F(0, 0, .05f);
+	}
+
+	if (DxUt::g_KeysState[DIK_E]) {
+		g_RBWorld.GetRigidBody(g_uiWheelPos[0])->GetAngVel() -= DxUt::Vector3F(0, 0, .05f);
+		g_RBWorld.GetRigidBody(g_uiWheelPos[1])->GetAngVel() -= DxUt::Vector3F(0, 0, .05f);
+	}
+
 	static bool once = 1;
-	if (!once || DxUt::g_KeysState[DIK_SPACE]) {
+	if (!once || DxUt::g_KeysState[DIK_SPACE] || counter == -1) {
 		//g_RBWorld.GetRigidBody(g_dwBallId)->GetPos() = Vector3F(0, 6.f, 0);
 		//g_RBWorld.GetRigidBody(g_dwBallId)->GetLinVel() = Vector3F(0, 0.f, 0);
 		g_RBWorld.GetRigidBody(g_dwBallId)->GetPos() = g_Camera.GetPosition();
-		g_RBWorld.GetRigidBody(g_dwBallId)->GetLinVel() = 6.f*g_Camera.GetForwardVector();once = 1;
+		g_RBWorld.GetRigidBody(g_dwBallId)->GetLinVel() = 20.f*g_Camera.GetForwardVector();once = 1;
 	}
 
 	g_Camera.UpdateFPCamera(50.f*DxUt::g_SPFrame);
