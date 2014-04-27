@@ -68,11 +68,14 @@ DxUt::CRigidBodyWorld g_RBWorld;
 DxUt::CMeshPNT g_Box;
 DxUt::CMeshPNT g_Waffle;
 DxUt::CMeshPNT g_Platform;
+DxUt::CMeshPNT g_BigPlatform;
 DxUt::CMeshPNT g_Sphere;
 DxUt::CMeshPNT g_Nut;
 DxUt::CMeshPNT g_Bolt;
 DxUt::CMeshPNT g_Tread;
 DxUt::CMeshPNT g_Wheel;
+DxUt::CMeshPNT g_TankCylinder;
+DxUt::CMeshPNT g_TankBLock;
 DxUt::CMeshPNT g_Connector;
 DxUt::CMeshPNT g_SquareFunnel;
 DxUt::CMeshPNT g_Ground;
@@ -133,6 +136,7 @@ void CreateObj()
 	//g_Lattice.LoadMeshFromFile("lattice.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	///g_BoxInflated.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.1f));
 	g_Platform.LoadMeshFromFile("platform.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_BigPlatform.LoadMeshFromFile("big_platform.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Sphere.LoadMeshFromFile("sphere.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	/*g_SphereHR.LoadMeshFromFile("sphere_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
 	g_Torus.LoadMeshFromFile("torus.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
@@ -151,7 +155,9 @@ void CreateObj()
 	g_rgGear[0].LoadMeshFromFile("gear1.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_rgGear[1].LoadMeshFromFile("gear2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));*/
 	g_Tread.LoadMeshFromFile("tread.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	g_Wheel.LoadMeshFromFile("wheel2.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_Wheel.LoadMeshFromFile("wheel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_TankCylinder.LoadMeshFromFile("cylinder.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_TankBLock.LoadMeshFromFile("block.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	/*
 	g_Rod.LoadMeshFromFile("Rod.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Plank.LoadMeshFromFile("Plank.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
@@ -544,15 +550,15 @@ void CreateTankScene()
 	rot1.MRotationYLH(.25*3.141);
 	rot2.MRotationZLH(.12*D3DX_PI);
 
-	g_RBWorld.AddRigidBody(&g_Platform, 1.f, -200.f, Vector3F(0, -17.f, 0), idenity, zero,
-		zero, 1.f, .5f, zero, zero, "platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(30, -17.5f, 0), idenity, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
 
 	std::fstream stream("tank_info.txt");
 	char name[256];
 	UINT uiRod = 0;
 	int count=0;
 	while ((stream >> name)) {
-		float mass = 1.f;
+		float mass = 5.f;
 		Vector3F pos;
 		stream >> pos.x;
 		stream >> pos.y;
@@ -567,12 +573,43 @@ void CreateTankScene()
 		float offset = 16.f;
 		if (strstr(name, "poly") != NULL) {
 			g_RBWorld.AddRigidBody(&g_Tread, 1.f, .1f*mass, pos, rot, zero,
-				zero, 1.f, 0.f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-		} else if (strstr(name, "wheel") != NULL) {
-			UINT uiRBIndex = g_RBWorld.AddRigidBody(&g_Wheel, 1.f, mass, pos, rot, zero,
-				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "wheel2.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+				zero, 1.f, .5f, zero, zero, "tread.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		} else if (strstr(name, "cylinder") != NULL) {
+			UINT uiRBIndex = g_RBWorld.AddRigidBody(&g_TankCylinder, 1.f, mass, pos, rot, zero,
+				Vector3F(0, 0, 0), 1.f, .5f, zero, Vector3F(0, 0, 0), "cylinder.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
 			//g_RBWorld.AddCenterOfMassPositionConstraint(uiRBIndex, pos);
 			g_uiWheelPos[count++] = uiRBIndex;
+		} else if (strstr(name, "block") != NULL) {
+			g_RBWorld.AddRigidBody(&g_TankBLock, 1.f, mass, pos, rot, zero,
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "block.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		}  
+	}
+	//g_RBWorld.AddRigidBody(&g_Sphere, 1.f, -1, DxUt::Vector3F(60, -16.5, 18), rot1, zero,
+	//	zero, 1.f, 0.f, zero, zero, "sphere.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+
+	float mass = .1;
+	int nBoxesWide = 20;
+	int nBoxesHigh = 20;
+	float fBoxCenter = 60.f;
+	float fBoxWidth = 2.0f;
+	float fBoxHeight = 2.01f;
+	float fBoxLeft = -nBoxesWide*fBoxWidth/2.f; UINT idx=1;
+	for (int j=0; j<=nBoxesHigh; j++) {
+		//if (j==0) mass = -10.f;
+		//else mass = 10.f;
+		fBoxLeft = -(nBoxesWide - j)*fBoxWidth/2.f;
+		for (int i=0; i<=nBoxesWide - j; i++) {
+			DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxCenter, 2 + fBoxHeight*j - 17.5,fBoxLeft + i*(fBoxWidth+.2) )); 
+			//boxPos = Vector3F(0, 4.f, -4.7f);
+			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth + .1*(i%2), 2 + fBoxWidth*j, .2f*(j%2))); 
+			//DxUt::Vector3F boxPos(DxUt::Vector3F(fBoxLeft + i*fBoxWidth, 2 + fBoxWidth*j, 0)); 
+			mat.dif = D3DXCOLOR((rand()%256)/256.f, (rand()%256)/256.f, (rand()%256)/256.f, 1.f);
+			g_RBWorld.AddRigidBody(&g_Box, 1.f, mass, boxPos, idenity, zero,
+				zero, 1.f, 0.2f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+
+			//g_RBWorld.GetRigidBody(1+i*(j+1))->GetPos() = DxUt::Vector3F(fBoxLeft + i*fBoxWidth, 2 + fBoxWidth*j, 0);
+			//g_RBWorld.GetRigidBody(1+i*(j+1))->GetLinVel() = DxUt::Vector3F(0, 0, 1.f);
+			//g_RBWorld.GetRigidBody(idx++)->GetAngVel() = DxUt::Vector3F(0, 1.f, 0);
 		}
 	}
 }
@@ -591,7 +628,7 @@ void Render()
 	//	g_RBWorld.UpdateRigidBodies(.03, DxUt::Vector3F(0, -3.8f, 0));
 	//} counter++;
 	static int count = 0;
-	float timeStep = .015f;
+	float timeStep = .03f;
 	static bool bInitialGo = 0;
 	static float totalTime = 0;
 	//if (count++ > 100) timeStep = .01f;
@@ -621,8 +658,8 @@ void Render()
 	}
 
 	if (DxUt::g_KeysState[DIK_E]) {
-		g_RBWorld.GetRigidBody(g_uiWheelPos[0])->GetAngVel() -= DxUt::Vector3F(0, 0, .05f);
-		g_RBWorld.GetRigidBody(g_uiWheelPos[1])->GetAngVel() -= DxUt::Vector3F(0, 0, .05f);
+		g_RBWorld.GetRigidBody(g_uiWheelPos[0])->GetAngVel() -= DxUt::Vector3F(0, 0, .4f);
+		g_RBWorld.GetRigidBody(g_uiWheelPos[1])->GetAngVel() -= DxUt::Vector3F(0, 0, .4f);
 	}
 
 	static bool once = 1;
