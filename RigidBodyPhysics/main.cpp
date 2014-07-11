@@ -5,6 +5,7 @@
 #include "DxUtMesh.h"
 #include "DxUtRigidBodyWorld.h"
 #include "DxUtShaders.h"
+#include "DxUtArray.h"
 
 #include <fstream>
 
@@ -13,16 +14,19 @@ enum Scenes {
 	TestFE1,
 	TestFE2,
 	TestEE,
+	TestEdgeSampling,
+	TestClustering,
 	Waffle,
 	BoxPyramid,
 	BoxStack,
 	NutBolt,
 	Funnel,
 	TankScene,
+	WallScene,
 };
 //https://gist.github.com/badboy/6267743	
 
-Scenes g_Scene = Scenes::TankScene;
+Scenes g_Scene = Scenes::TestClustering;
 
 bool g_bUseHierarchicalLevelSet=0;
 
@@ -33,12 +37,15 @@ void CreateTestVE();
 void CreateTestFE1();
 void CreateTestFE2();
 void CreateTestEE();
+void CreateTestEdgeSampling();
+void CreateTestClustering();
 void CreateWaffleScene();
 void CreateBoxPyramidScene();
 void CreateBoxStackScene();
 void CreateNutBoltScene();
 void CreateFunnelScene();
 void CreateTankScene();
+void CreateWallScene();
 void CreateBall();
 
 void Render();
@@ -76,10 +83,15 @@ DxUt::CMeshPNT g_Tread;
 DxUt::CMeshPNT g_Wheel;
 DxUt::CMeshPNT g_TankCylinder;
 DxUt::CMeshPNT g_TankBLock;
-DxUt::CMeshPNT g_Connector;
-DxUt::CMeshPNT g_SquareFunnel;
-DxUt::CMeshPNT g_Ground;
-DxUt::CMeshPNT g_Ramp;
+DxUt::CMeshPNT g_BunnyConvex;
+DxUt::CMeshPNT g_BunnyConvexL0;
+DxUt::CMeshPNT g_RaptorConvexL0;
+DxUt::CMeshPNT g_TankTurret;
+DxUt::CMeshPNT g_TankBody;
+
+UINT g_nWallFragments;
+DxUt::CMeshPNT * g_WallFragment;
+
 
 DxUt::CPNTPhongFx g_Effect;
 
@@ -101,12 +113,15 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 		case Scenes::TestFE1:		CreateTestFE1(); break;
 		case Scenes::TestFE2:		CreateTestFE2(); break;
 		case Scenes::TestEE:		CreateTestEE(); break;
+		case Scenes::TestEdgeSampling: CreateTestEdgeSampling(); break;
+		case Scenes::TestClustering: CreateTestClustering(); break;
 		case Scenes::Waffle:		CreateWaffleScene(); break;
 		case Scenes::BoxPyramid:	CreateBoxPyramidScene(); break;
 		case Scenes::BoxStack:		CreateBoxStackScene(); break;
 		case Scenes::NutBolt:		CreateNutBoltScene(); break;
 		case Scenes::Funnel:		CreateFunnelScene(); break;
 		case Scenes::TankScene:		CreateTankScene(); break;
+		case Scenes::WallScene:		CreateWallScene(); break;
 	}
 	//CreateGlass();
  	CreateBall();
@@ -125,7 +140,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPreInst, PSTR line, int show)
 void CreateObj()
 { 
 	//Create camera
-	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.475f, .475f, .475f), .01f);
+	g_Camera.CreateFPCameraLH(.5*D3DX_PI, g_uiScreenWidth, g_uiScreenHeight, .01f, 100.f, DxUt::Vector3F(.475f, .475f, .475f), .0001f);
 	g_Camera.SetFPCamera(DxUt::Vector3F(0, 5.f, -5.5f), .5*D3DX_PI, 0);
 
 	//Create the mesh
@@ -137,6 +152,9 @@ void CreateObj()
 	///g_BoxInflated.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.1f));
 	g_Platform.LoadMeshFromFile("platform.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_BigPlatform.LoadMeshFromFile("big_platform.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_BunnyConvex.LoadMeshFromFile("bunny_convex.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_BunnyConvexL0.LoadMeshFromFile("bunny_convex_l0.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_RaptorConvexL0.LoadMeshFromFile("raptor_convex_l0.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Sphere.LoadMeshFromFile("sphere.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	/*g_SphereHR.LoadMeshFromFile("sphere_hr.txt", D3DX10_MESH_32_BIT, Vector3F(1.));
 	g_Torus.LoadMeshFromFile("torus.txt", D3DX10_MESH_32_BIT, Vector3F(1.5));
@@ -158,6 +176,8 @@ void CreateObj()
 	g_Wheel.LoadMeshFromFile("wheel.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_TankCylinder.LoadMeshFromFile("cylinder.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_TankBLock.LoadMeshFromFile("block.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_TankTurret.LoadMeshFromFile("turret.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	g_TankBody.LoadMeshFromFile("body.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	/*
 	g_Rod.LoadMeshFromFile("Rod.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
 	g_Plank.LoadMeshFromFile("Plank.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
@@ -289,6 +309,60 @@ void CreateTestEE()
 	g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(.1, 2.45, -1.5 - (1/.707)+1.);//DxUt::Vector3F(-.447, 2.45, -1.5 - (1/.707)+1.);
 }
 
+void CreateTestEdgeSampling()
+{
+	//Create the RBWorld
+	g_RBWorld.CreateRigidBodyWorld(2, 32, g_bUseHierarchicalLevelSet);
+	DxUt::Matrix4x4F idenity; idenity.MIdenity();
+	DxUt::Vector3F zero(0, 0, 0);
+	UINT uiStride = sizeof(DxUt::SVertexPNT);
+	g_RBWorld.AddRigidBody(&g_Platform, 1.f, -10.f, zero, idenity, zero,
+		zero, 1.f, 0.f, zero, zero, "platform.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+	g_RBWorld.AddRigidBody(&g_Box, 1.f, 10.f, zero, idenity, zero,
+		zero, 1.f, 0.f, zero, zero, "Box.lvset", 100, DxUt::CRigidBody::GT_TRIANGLE_MESH);
+
+	DxUt::Matrix4x4F rot1, rotHorizontal;
+	//Face-face
+	rotHorizontal.MRotationZLH(-.0*D3DX_PI);
+	rot1.MRotationYLH(.25*3.141);
+	g_RBWorld.GetRigidBody(1)->GetRot() = rotHorizontal*rot1;
+	//g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(.5, 2.45, .5);//-1 - (1/.707)+.6);
+	//g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(.9, 1.8, 0);//-1 - (1/.707)+.6);
+	g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(1.2, 2.9, 0);//-1 - (1/.707)+.6);
+	//g_RBWorld.GetRigidBody(1)->GetLinVel() = DxUt::Vector3F(0, 0, -.3f);
+	//g_RBWorld.GetRigidBody(1)->GetAngVel() = DxUt::Vector3F(0, 10., 0);
+
+	//Edge-edge
+	rotHorizontal.MRotationXLH(-.25*D3DX_PI);
+	rot1.MRotationZLH(.25*3.141);
+	g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(0, 2.f, 0.);
+	g_RBWorld.GetRigidBody(1)->GetRot() = rotHorizontal;
+	g_RBWorld.GetRigidBody(1)->GetPos() = DxUt::Vector3F(.1, 2.45, -1.5 - (1/.707)+1.);//DxUt::Vector3F(-.447, 2.45, -1.5 - (1/.707)+1.);
+}
+
+void CreateTestClustering()
+{
+	//Create the RBWorld
+	g_RBWorld.CreateRigidBodyWorld(10, 10000, g_bUseHierarchicalLevelSet, DxUt::Vector3F(0, -3.8f, 0), .03f, 20.f);
+	DxUt::Matrix4x4F idenity; idenity.MIdenity();
+	DxUt::Vector3F zero(0, 0, 0);
+	UINT uiStride = sizeof(DxUt::SVertexPNT);
+
+	DxUt::SMaterial mat;
+	mat.spe = D3DXCOLOR(.5f, .5f, .5f, 1.f);
+	mat.pow = 16.f;
+
+	mat.amb = D3DXCOLOR(.02f, .0f, .0f, 1.f);
+	mat.dif = D3DXCOLOR(.02f, .0f, .0f, 1.f);
+
+	g_RBWorld.AddRigidBody(&g_Platform, 1.f, -200.f, zero, idenity, zero,
+		zero, 1.f, .5f, zero, zero, "platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	float mass = 1;
+	g_RBWorld.AddRigidBody(&g_Box, 1.f, mass, Vector3F(0, 4, 0), idenity, zero,
+				zero, 1.f, 0.0f, zero, zero, "box.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+}
+
 void CreateWaffleScene()
 {
 	//Create the RBWorld
@@ -339,8 +413,8 @@ void CreateBoxPyramidScene()
 	srand(0);
 
 	float mass = 1;
-	int nBoxesWide = 25;
-	int nBoxesHigh = 25;
+	int nBoxesWide = 8;
+	int nBoxesHigh = 8;
 	float fBoxCenter = 0.f;
 	float fBoxWidth = 2.0f;
 	float fBoxHeight = 2.01f;
@@ -434,15 +508,10 @@ void CreateNutBoltScene()
 
 void CreateFunnelScene()
 {
-	/*g_RBWorld.CreateRigidBodyWorld(2, 32, g_bUseHierarchicalLevelSet, &Vector3F(0, -3.8f, 0), .03, 14.f);
+	g_RBWorld.CreateRigidBodyWorld(2, 32, g_bUseHierarchicalLevelSet, Vector3F(0, -4.8f, 0), .03, 14.f);
 	DxUt::Matrix4x4F idenity; idenity.MIdenity();
 	DxUt::Vector3F zero(0, 0, 0);
 	UINT uiStride = sizeof(DxUt::SVertexPNT);
-
-	DxUt::Matrix4x4F rot;
-	rot.MRotationZLH(0.*3.141);
-	DxUt::Matrix4x4F rot2;
-	rot2.MRotationZLH(.4*3.141);
 
 	DxUt::SMaterial mat;
 	mat.spe = D3DXCOLOR(.8f, .8f, .8f, 1.f);
@@ -451,11 +520,44 @@ void CreateFunnelScene()
 	//mat.amb = D3DXCOLOR(.9f, .3f, .3f, 1.f);
 	//mat.dif = D3DXCOLOR(.9f, .2f, .2f, 1.f);
 	
-	mat.amb = D3DXCOLOR(.6f, .1f, .1f, 1.f);
+	mat.amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
 	mat.dif = D3DXCOLOR(.75f, .1f, .1f, 1.f);
 
 	int nPoly = 0;
+
+	DxUt::Matrix4x4F rot, rotY;
+	rotY.MRotationYLH(D3DX_PI/2.f);
+	rot.MRotationXLH(D3DX_PI/4.f);
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(0, 0, 0), rot*rotY, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	rot.MRotationXLH(-D3DX_PI/4.f);
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(0, 0, 0), rot*rotY, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	rot.MRotationZLH(D3DX_PI/4.f);
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(0, 0, 0), rot, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	rot.MRotationZLH(-D3DX_PI/4.f);
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(0, 0, 0), rot, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+		
+	for (UINT i=0; i<20; i++) {
+		//g_RBWorld.AddRigidBody(&g_BunnyConvexL0, 1.f, 1.f, Vector3F(0, 10+4*(i+1), 0), rot, zero,
+		//	zero, 1.f, .0f, zero, zero, "bunny_convex_l0.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		float mass = 1;
+		if (i == 0) mass = 1;
+		mat.dif = D3DXCOLOR((rand()%256)/256.f, (rand()%256)/256.f, (rand()%256)/256.f, 1.f);
+		mat.amb = .5f*mat.dif;
+		g_RBWorld.AddRigidBody(&g_RaptorConvexL0, 1.f, mass, Vector3F(0, 10+20*(i+1), 0), rot, zero,
+			zero, 1.f, .0f, zero, zero, "raptor_convex_l0.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+	}
 	
+	g_Camera.SetFPCamera(DxUt::Vector3F(0, 15.f, -5.5f), .5*D3DX_PI, 0);
+	
+
+	/*
 	std::fstream file("specs.txt");
 	UINT uiTriPerVolume;
 	int nObjects;
@@ -474,7 +576,7 @@ void CreateFunnelScene()
 	//g_RBWorld.AddRigidBody(&g_Box, 1.f, -1.f, Vector3F(0, -10, 0), idenity, zero,
 	//	zero, 1.f, 0.f, zero, zero, "Box.lvset", .05, 1, DxUt::CRigidBody::GT_OBBOX, &mat);
 
-	/*mat.amb = D3DXCOLOR((rand() % 255)/255.f, (rand() % 255)/255.f, (rand() % 255)/255.f, 1.f);//D3DXCOLOR(.6f, .3f, .3f, 1.f);
+	mat.amb = D3DXCOLOR((rand() % 255)/255.f, (rand() % 255)/255.f, (rand() % 255)/255.f, 1.f);//D3DXCOLOR(.6f, .3f, .3f, 1.f);
 	g_RBWorld.AddRigidBody(&g_Bolt, 1.f, 1.f, DxUt::Vector3F(-6,6, -.5), rot2, zero,
 				zero, 1.f, 0.f, zero, zero, "bolt.lvset", .08, 1, DxUt::CRigidBody::GT_TRIANGLE_MESH, &mat);
 	float objRadius = 12.5f;
@@ -582,7 +684,13 @@ void CreateTankScene()
 		} else if (strstr(name, "block") != NULL) {
 			g_RBWorld.AddRigidBody(&g_TankBLock, 1.f, mass, pos, rot, zero,
 				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "block.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
-		}  
+		} else if (strstr(name, "turret") != NULL) {
+			g_RBWorld.AddRigidBody(&g_TankTurret, 1.f, -mass, pos, rot, zero,
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "turret.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		}  else if (strstr(name, "body") != NULL) {
+			g_RBWorld.AddRigidBody(&g_TankBody, 1.f, -mass, pos, rot, zero,
+				Vector3F(0, 0, 0), 1.f, 0.f, zero, Vector3F(0, 0, 0), "body.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+		}    
 	}
 	//g_RBWorld.AddRigidBody(&g_Sphere, 1.f, -1, DxUt::Vector3F(60, -16.5, 18), rot1, zero,
 	//	zero, 1.f, 0.f, zero, zero, "sphere.lvset", 100, DxUt::CRigidBody::GT_OBBOX, &mat);
@@ -614,6 +722,64 @@ void CreateTankScene()
 	}
 }
 
+UINT g_nMeshes = 0;
+DxUt::CMeshPNT g_Meshes[80];
+DxUt::Vector3F g_Pos[80];
+
+void CreateWallScene() 
+{
+	DxUt::SMaterial mat;
+	mat.spe = D3DXCOLOR(.5f, .5f, .5f, 1.f);
+	mat.pow = 16.f;
+
+	mat.amb = D3DXCOLOR(.02f, .0f, .0f, 1.f);
+	mat.dif = D3DXCOLOR(.02f, .0f, .0f, 1.f);
+
+	mat.amb = D3DXCOLOR(.1f, .1f, .2f, 1.f);
+	mat.dif = D3DXCOLOR(.2f, .2f, .6f, 1.f);
+
+
+	g_RBWorld.CreateRigidBodyWorld(20, 1000, g_bUseHierarchicalLevelSet, DxUt::Vector3F(0, -3.8, 0));
+
+	DxUt::Matrix4x4F idenity; idenity.MIdenity();
+	DxUt::Vector3F zero(0, 0, 0);
+
+	g_RBWorld.AddRigidBody(&g_BigPlatform, 1.f, -200.f, Vector3F(30, -11.5f, 0), idenity, zero,
+		zero, 1.f, .5f, zero, zero, "big_platform.lvset", 100, DxUt::CRigidBody::GT_OBBOX);
+
+	std::fstream stream("C:\\Users\\Aric\\Desktop\\wall\\wall_info.txt");
+	char name[256];
+	int count=0;
+	while ((stream >> name)) {
+		float mass = 5.f;
+		Vector3F pos;
+		stream >> pos.x;
+		stream >> pos.y;
+		stream >> pos.z;
+		pos.z = -pos.z;
+		D3DXQUATERNION quat;
+		stream >> quat.x;
+		stream >> quat.y;
+		stream >> quat.z;
+		stream >> quat.w;
+		DxUt::Matrix4x4F rot;
+		D3DXMatrixRotationQuaternion((D3DXMATRIX*)&rot, &quat);
+
+		mat.dif = D3DXCOLOR((rand()%256)/256.f, (rand()%256)/256.f, (rand()%256)/256.f, 1.f);
+		mat.amb = .5f*mat.dif;
+
+		char file[256];
+		sprintf(file, "C:\\Users\\Aric\\Desktop\\wall\\frag%i.obj", g_nMeshes);
+		g_Meshes[g_nMeshes++].LoadMeshFromFile(file, D3DX10_MESH_32_BIT, 1);
+		g_Pos[g_nMeshes-1] = pos;
+
+		sprintf(file, "C:\\Users\\Aric\\Desktop\\wall\\frag%i.lvset", g_nMeshes-1);
+		g_RBWorld.AddRigidBody(&g_Meshes[g_nMeshes-1], 1.f, 2.f, pos, idenity, zero,
+			zero, 1.f, .5f, zero, zero, file, 100, DxUt::CRigidBody::GT_OBBOX, &mat);
+	}
+
+}
+
 void Render()
 {
 	//float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -622,6 +788,22 @@ void Render()
 	//float color[] = {.5f, 0.4f, 0.9f, 1.0f};
 	g_pD3DDevice->ClearRenderTargetView(g_pRenderTargetView, color);
 	g_pD3DDevice->ClearDepthStencilView(g_pDepthStencilView, D3D10_CLEAR_DEPTH | D3D10_CLEAR_STENCIL, 1.0f, 0);
+	
+	g_Camera.UpdateFPCamera(50.f*DxUt::g_SPFrame);
+
+	/*if (g_Scene == WallScene) {
+		for (int i=0; i<g_nMeshes; i++) {
+			g_Meshes[i].SetupDraw(&g_Camera, g_Light);
+			DxUt::Matrix4x4F id; id.MIdenity();
+			id.MTranslation(g_Pos[i]);
+			g_Meshes[i].DrawAllSubsets(&g_Camera, id, 0);
+		}
+
+		g_pSwapChain->Present(0, 0);
+
+		return;
+	}*/
+
 
 	//static int counter = 0;
 	//if (counter < 18) {
@@ -669,8 +851,6 @@ void Render()
 		g_RBWorld.GetRigidBody(g_dwBallId)->GetPos() = g_Camera.GetPosition();
 		g_RBWorld.GetRigidBody(g_dwBallId)->GetLinVel() = 20.f*g_Camera.GetForwardVector();once = 1;
 	}
-
-	g_Camera.UpdateFPCamera(50.f*DxUt::g_SPFrame);
 
 	g_RBWorld.DrawRigidBodies(&g_Camera, g_Light, 0);
 
@@ -731,3 +911,43 @@ void ShutDown()
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+void ExtractTexture()
+{
+	struct Color {
+		BYTE r;
+		BYTE g;
+		BYTE b;
+		BYTE a;
+	};
+	Color * pixels;
+	UINT width, height;
+	((DxUt::CD3DApp*)g_App)->ExtractPixelsFromImageFile("C:/Users/Aric/Desktop/Presentation/bunny.jpg", (void**)&pixels, sizeof(int)*4, &width, &height);
+
+	std::ofstream streamOut("text_info.txt", std::ios::out | std::ios::trunc);
+	for (int i=0; i<width; i++) {
+		int j=0;
+		for (; j<height; j++) {
+			if (pixels[j*width+i].r < 10) 
+				break;
+		}
+
+		streamOut << i << ' ' << height-j << std::endl;
+	}
+	exit(1);
+
+}*/
